@@ -24,11 +24,14 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="car.py" />
+    <Compile Include="graph.py" />
     <Compile Include="rider.py" />
     <Compile Include="simulation.py" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="map.csv" />
     <Content Include="README.md" />
+    <Content Include="SimCityMapGraph.png" />
   </ItemGroup>
   <ItemGroup>
     <Interpreter Include="env\">
