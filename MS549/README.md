@@ -13,8 +13,6 @@ Ensure map.csv is present in the working directory with your desired network con
 >Broadway,Main St,5<br>
 >Main St,Oak Ave,3<br>
 
-![Example Map Visualization](SimCityMapGraph.png){width=400px height=300px}
-
 ## How to Run: 
 Currently, the project is designed to be run in a Python environment. To execute the application, follow these steps:
 
