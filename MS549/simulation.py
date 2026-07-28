@@ -2,6 +2,7 @@
 # import the Car and Rider classes from their respective modules
 from car import Car
 from rider import Rider
+from graph import Graph
 
 
 # Simulation class to manage riders and cars
@@ -10,6 +11,10 @@ class Simulation:
     def __init__(self):
         self.riders = {}
         self.cars = {}
+        # Initialize the graph for the simulation
+        self.map = Graph()
+        self.map.load_from_file("map.csv")
+        print("Simulation initialized with map data.")
     # Function to add a rider to the simulation
     def add_rider(self, rider):
         self.riders[rider.id] = rider
@@ -21,6 +26,8 @@ class Simulation:
 
 
 Sim = Simulation()
+
+print(Sim.map) # Print the graph to verify it has been loaded correctly
 
 # Creates the Cars for the simulation
 Car1 = Car(car_id=100, driver_name="Alice", initial_location=(40.7, -74.0))
