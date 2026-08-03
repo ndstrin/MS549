@@ -13,6 +13,7 @@
     <Name>MS549 - RideShare Sim</Name>
     <RootNamespace>MS549</RootNamespace>
     <InterpreterId>MSBuild|env|$(MSBuildProjectFullPath)</InterpreterId>
+    <SuppressConfigureTestFrameworkPrompt>true</SuppressConfigureTestFrameworkPrompt>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -25,12 +26,15 @@
   <ItemGroup>
     <Compile Include="car.py" />
     <Compile Include="graph.py" />
+    <Compile Include="pathfinding.py" />
     <Compile Include="rider.py" />
     <Compile Include="simulation.py" />
+    <Compile Include="test_dijkstra.py" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="map.csv" />
     <Content Include="README.md" />
+    <Content Include="requirements.txt" />
     <Content Include="SimCityMapGraph.png" />
   </ItemGroup>
   <ItemGroup>

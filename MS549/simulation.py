@@ -1,5 +1,7 @@
 
 # import the Car and Rider classes from their respective modules
+from re import S
+
 from car import Car
 from rider import Rider
 from graph import Graph
@@ -27,17 +29,17 @@ class Simulation:
 
 Sim = Simulation()
 
-print(Sim.map) # Print the graph to verify it has been loaded correctly
+#print(Sim.map) # Print the graph to verify it has been loaded correctly
 
 # Creates the Cars for the simulation
-Car1 = Car(car_id=100, driver_name="Alice", initial_location=(40.7, -74.0))
-Car2 = Car(car_id=101, driver_name="Bob", initial_location=(40.8, -73.9))
-Car3 = Car(car_id=102, driver_name="Charlie", initial_location=(40.9, -73.8))
+Car1 = Car(car_id=100, driver_name="Alice", initial_location=('Pine St'))
+Car2 = Car(car_id=101, driver_name="Bob", initial_location=('Park Ave'))
+Car3 = Car(car_id=102, driver_name="Charlie", initial_location=('Main St'))
 
 # Creates the Riders for the simulation
-Rider1 = Rider(rider_id=1, name="John", pickup_location=(50.5, -68.0), destination=(40.8, -73.9))
-Rider2 = Rider(rider_id=2, name="Jane", pickup_location=(40.8, -73.9), destination=(40.9, -73.8))
-Rider3 = Rider(rider_id=3, name="Mike", pickup_location=(40.9, -73.8), destination=(40.7, -74.0))
+Rider1 = Rider(rider_id=1, name="John", pickup_location=('Walnut St'), destination=('Park Ave'))
+Rider2 = Rider(rider_id=2, name="Jane", pickup_location=('Park Ave'), destination=('Oak Ave'))
+Rider3 = Rider(rider_id=3, name="Mike", pickup_location=('Main St'), destination=('Market St'))
 
 
 # Adds the cars to the simulation
@@ -48,15 +50,13 @@ Sim.add_car(Car3)
 # Adds the riders to the simulation
 Sim.add_rider(Rider1)
 Sim.add_rider(Rider2)
-Sim.add_rider(Rider3)   
 
 # Assigns the rider 1 to the car 100
-Sim.cars[100].passengers.append(Sim.riders[1])
-Sim.cars[100].status = "En route"
-Sim.cars[100].destination = Sim.riders[1].pickup_location
-Sim.riders[1].status = "Assigned to Car 100"
-
-# Displays the information of the cars and riders
+Sim.riders[1] = Sim.cars[100].pickup_passenger(Rider1, Sim.map)
+Sim.riders[2] = Sim.cars[100].pickup_passenger(Rider2, Sim.map)
 Sim.cars[100].display_info()
-Sim.cars[101].display_info()
-Sim.riders[1].display_info()
+Sim.cars[100].goto_dropoff_location(Sim.map)
+Sim.cars[100].display_info()
+Sim.riders[1] = Sim.cars[100].dropoff_passenger(Rider1, Sim.map)
+Sim.cars[100].display_info()
+
