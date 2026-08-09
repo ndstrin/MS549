@@ -4,7 +4,7 @@ from re import S
 
 from car import Car
 from rider import Rider
-from graph import Graph
+from Tools.graph import Graph
 
 
 # Simulation class to manage riders and cars
@@ -15,7 +15,7 @@ class Simulation:
         self.cars = {}
         # Initialize the graph for the simulation
         self.map = Graph()
-        self.map.load_from_file("map.csv")
+        self.map.load_from_file("Data\\map.csv")
         print("Simulation initialized with map data.")
     # Function to add a rider to the simulation
     def add_rider(self, rider):

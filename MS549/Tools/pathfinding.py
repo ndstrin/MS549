@@ -4,10 +4,7 @@ import heapq
 def find_shortest_path(graph, start_node, end_node):
 
     # Handle the case where the start or end node is not in the graph
-    if (
-        start_node not in graph.adjacency_list
-        or end_node not in graph.adjacency_list
-    ):
+    if start_node not in graph.adjacency_list:
         return (None, float("inf"))
 
     # Initialize the priority queue with the starting node and a distance of 0
@@ -32,13 +29,13 @@ def find_shortest_path(graph, start_node, end_node):
             distance = current_dist + weight
 
             # If a shorter path to neighbor is found
-            if distance < distances[neighbor]:
+            if distance < distances.get(neighbor, float("inf")):
                 distances[neighbor] = distance
                 predecessors[neighbor] = current_node
                 heapq.heappush(priorityQueue, (distance, neighbor))
 
     # Reconstruct path if destination was reached
-    if distances[end_node] == float("inf"):
+    if distances.get(end_node, float("inf")) == float("inf"):
         return (None, float("inf"))
 
     path = []

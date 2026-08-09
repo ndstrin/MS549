@@ -1,13 +1,13 @@
 from car import Car
-from graph import Graph
-from pathfinding import find_shortest_path
+from Tools.graph import Graph
+from Tools.pathfinding import find_shortest_path
 
 ## Test cases for the Dijkstra's algorithm and Car class integration
 def test_dijkstra_integration():
     
     ## Load the graph from the CSV file
     graph = Graph()
-    graph.load_from_file("map.csv")
+    graph.load_from_file("Data\\map.csv")
 
     print("Dijkstra's Algorithm Test:")
     # Find the shortest path from Pine St to Park Ave

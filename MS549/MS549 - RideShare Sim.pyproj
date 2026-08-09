@@ -25,17 +25,19 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="car.py" />
-    <Compile Include="graph.py" />
-    <Compile Include="pathfinding.py" />
+    <Compile Include="Tools\graph.py" />
+    <Compile Include="Tools\pathfinding.py" />
+    <Compile Include="Tools\quadtree.py" />
     <Compile Include="rider.py" />
     <Compile Include="simulation.py" />
-    <Compile Include="test_dijkstra.py" />
+    <Compile Include="Tests\test_dijkstra.py" />
+    <Compile Include="Tests\test_quadtree.py" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="map.csv" />
+    <Content Include="Data\map.csv" />
     <Content Include="README.md" />
     <Content Include="requirements.txt" />
-    <Content Include="SimCityMapGraph.png" />
+    <Content Include="Data\SimCityMapGraph.png" />
   </ItemGroup>
   <ItemGroup>
     <Interpreter Include="env\">
@@ -47,6 +49,11 @@
       <PathEnvironmentVariable>PYTHONPATH</PathEnvironmentVariable>
       <Architecture>X64</Architecture>
     </Interpreter>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Data\" />
+    <Folder Include="Tools\" />
+    <Folder Include="Tests\" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in

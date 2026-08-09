@@ -1,6 +1,6 @@
 # Car Class 
 
-from pathfinding import find_shortest_path
+from Tools.pathfinding import find_shortest_path
 from rider import Rider
 
 
