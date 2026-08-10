@@ -1,21 +1,24 @@
 # Car Class 
 
+from ast import List
+from typing import Optional, List, Tuple
 from Tools.pathfinding import find_shortest_path
 from rider import Rider
 
+TRAVEL_SPEED_FACTOR = 0.05  # Time units per distance unit
 
 class Car:
      # Constructor to initialize the car with an ID and initial location
-    def __init__(self, car_id, driver_name, initial_location):
+    def __init__(self, car_id, driver_name, initial_location: Tuple[float, float]):
 
         self.id = car_id
         self.driver_name = driver_name
-        self.location = initial_location
+        self.location = initial_location # Tuple of (latitude, longitude)
         self.status = 'available'
-        self.passengers = []
-        self.destination = None
-        self.route = []
-        self.route_time = 0.0
+        self.passengers: List[Rider] = []
+        self.destination: Optional[Tuple[float, float]] = None
+        self.route: List[Tuple[float, float]] = []
+        self.route_time: float = 0.0
         print(f"Car {self.id} created at location {self.location}.")
 
     # Function to calculate the shortest route to a destination using Dijkstra's algorithm
@@ -26,6 +29,15 @@ class Car:
         self.route_time = travelTime
         self.destination = destination
         return self.route, self.route_time
+
+    # Function to calculate the travel time to a given end location based on Manhattan distance
+    def calculate_travel_time(self, end_location: tuple[float, float]) -> float:
+        x1, y1 = self.location
+        x2, y2 = end_location
+        distance = abs(x1 - x2) + abs(y1 - y2)
+        return distance * TRAVEL_SPEED_FACTOR
+
+
 
     # Function to pick up a passenger and update the car's status and route
     def pickup_passenger(self, rider: Rider, graph):

@@ -1,7 +1,8 @@
+from typing import Tuple
 # Rider Class
 class Rider:
      # Constructor to initialize the rider with an ID and pickup/destination locations
-    def __init__(self, rider_id, name, pickup_location, destination):
+    def __init__(self, rider_id, name, pickup_location: Tuple[float, float], destination: Tuple[float, float]):
 
         self.id = rider_id
         self.name = name

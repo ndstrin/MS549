@@ -1,0 +1,23 @@
+start_node,start_x,start_y,end_node,end_x,end_y,travel_time
+Main St,0.0,0.0,Broadway,4.0,0.0,5
+Broadway,4.0,0.0,Main St,0.0,0.0,5
+Main St,0.0,0.0,Oak Ave,0.0,-3.0,3
+Oak Ave,0.0,-3.0,Main St,0.0,0.0,3
+Broadway,4.0,0.0,Elm St,1.0,-3.0,4
+Elm St,1.0,-3.0,Broadway,4.0,0.0,4
+Oak Ave,0.0,-3.0,Elm St,1.0,-3.0,1
+Elm St,1.0,-3.0,Oak Ave,0.0,-3.0,1
+Main St,0.0,0.0,Pine St,-2.0,0.0,2
+Pine St,-2.0,0.0,Main St,0.0,0.0,2
+Pine St,-2.0,0.0,Maple Ave,-8.0,0.0,6
+Maple Ave,-8.0,0.0,Pine St,-2.0,0.0,6
+Oak Ave,0.0,-3.0,Cedar Rd,-3.0,-3.0,3
+Cedar Rd,-3.0,-3.0,Oak Ave,0.0,-3.0,3
+Elm St,1.0,-3.0,Walnut St,-1.5,-5.6,5
+Walnut St,-1.5,-5.6,Elm St,1.0,-3.0,5
+Broadway,4.0,0.0,Market St,8.0,0.0,4
+Market St,8.0,0.0,Broadway,4.0,0.0,4
+Market St,8.0,0.0,Park Ave,10.0,0.0,2
+Park Ave,10.0,0.0,Market St,8.0,0.0,2
+Cedar Rd,-3.0,-3.0,Walnut St,-1.5,-5.6,3
+Walnut St,-1.5,-5.6,Cedar Rd,-3.0,-3.0,3

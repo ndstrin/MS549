@@ -34,6 +34,7 @@
     <Compile Include="Tests\test_quadtree.py" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Data\graph_xy.csv" />
     <Content Include="Data\map.csv" />
     <Content Include="README.md" />
     <Content Include="requirements.txt" />
