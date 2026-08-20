@@ -10,10 +10,12 @@ The engine processes events chronologically via a priority queue, manages concur
 ## Map Data Format:
 Ensure map.csv is present in the working directory with your desired network connections and travel times. In the below format.
 
- > start_node,start_x,start_y,end_node,end_x,end_y,travel_time  
+ > #start_node,start_x,start_y,end_node,end_x,end_y,travel_time  
  > Main St,0.0,0.0,Broadway,4.0,0.0,5.0  
  > Broadway,4.0,0.0,Main St,0.0,0.0,5.0  
  > Main St,0.0,0.0,Oak Ave,0.0,-3.0,3.0  
+#### Example Running a Custom Map:
+`python simulation.py --graph-file Data/custom_map.csv`
 
 ## How to Run: 
 Currently, the project is designed to be run in a Python environment. To execute the application, follow these steps:
@@ -22,8 +24,8 @@ Currently, the project is designed to be run in a Python environment. To execute
 * **Python**: Version 3.8 or higher.
 
 ### Dependencies
-Install the required third-party libraries using `pip`:
-pip install -r requirements.txt
+Install the required third-party libraries using `pip`:  
+`pip install -r requirements.txt`
 
 ### Running the Application
 
@@ -41,7 +43,7 @@ pip install -r requirements.txt
 | :--- | :---: | :---: | :--- |
 | `--num-cars` | `int` | `20` | Total number of vehicle fleet units to initialize on the map graph. |
 | `--num-riders` | `int` | `30` | Maximum number of dynamic rider request events to generate. |
-| `--candidate-count` | `int` | `5` | Candidate pool size ($k$) queried from the Quadtree spatial index for Dijkstra route evaluation. |
+| `--candidate-count` | `int` | `5` | Candidate pool size (k) queried from the Quadtree spatial index for Dijkstra route evaluation. |
 | `--graph-file` | `str` | `Data/graph_xy.csv` | Relative or absolute path to the CSV file containing the city map network topology. |
 | `--max-time` | `float` | `100.0` | Maximum simulation time cutoff. No new rider requests will be scheduled after this time. |
 | `--seed` | `int` | `42` | Pseudorandom generator seed for deterministic, reproducible simulation runs. |
