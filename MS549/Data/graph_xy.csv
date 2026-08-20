@@ -1,23 +1,49 @@
-start_node,start_x,start_y,end_node,end_x,end_y,travel_time
-Main St,0.0,0.0,Broadway,4.0,0.0,5
-Broadway,4.0,0.0,Main St,0.0,0.0,5
-Main St,0.0,0.0,Oak Ave,0.0,-3.0,3
-Oak Ave,0.0,-3.0,Main St,0.0,0.0,3
-Broadway,4.0,0.0,Elm St,1.0,-3.0,4
-Elm St,1.0,-3.0,Broadway,4.0,0.0,4
-Oak Ave,0.0,-3.0,Elm St,1.0,-3.0,1
-Elm St,1.0,-3.0,Oak Ave,0.0,-3.0,1
-Main St,0.0,0.0,Pine St,-2.0,0.0,2
-Pine St,-2.0,0.0,Main St,0.0,0.0,2
-Pine St,-2.0,0.0,Maple Ave,-8.0,0.0,6
-Maple Ave,-8.0,0.0,Pine St,-2.0,0.0,6
-Oak Ave,0.0,-3.0,Cedar Rd,-3.0,-3.0,3
-Cedar Rd,-3.0,-3.0,Oak Ave,0.0,-3.0,3
-Elm St,1.0,-3.0,Walnut St,-1.5,-5.6,5
-Walnut St,-1.5,-5.6,Elm St,1.0,-3.0,5
-Broadway,4.0,0.0,Market St,8.0,0.0,4
-Market St,8.0,0.0,Broadway,4.0,0.0,4
-Market St,8.0,0.0,Park Ave,10.0,0.0,2
-Park Ave,10.0,0.0,Market St,8.0,0.0,2
-Cedar Rd,-3.0,-3.0,Walnut St,-1.5,-5.6,3
-Walnut St,-1.5,-5.6,Cedar Rd,-3.0,-3.0,3
+#start_node,start_x,start_y,end_node,end_x,end_y,travel_time
+Main St,50.0,50.0,Broadway,75.0,50.0,10.0
+Broadway,75.0,50.0,Main St,50.0,50.0,10.0
+Main St,50.0,50.0,Oak Ave,50.0,25.0,8.0
+Oak Ave,50.0,25.0,Main St,50.0,50.0,8.0
+Main St,50.0,50.0,Pine St,25.0,50.0,8.0
+Pine St,25.0,50.0,Main St,50.0,50.0,8.0
+Main St,50.0,50.0,North Ave,50.0,75.0,10.0
+North Ave,50.0,75.0,Main St,50.0,50.0,10.0
+Broadway,75.0,50.0,Market St,100.0,50.0,12.0
+Market St,100.0,50.0,Broadway,75.0,50.0,12.0
+Broadway,75.0,50.0,Elm St,75.0,25.0,9.0
+Elm St,75.0,25.0,Broadway,75.0,50.0,9.0
+Oak Ave,50.0,25.0,Elm St,75.0,25.0,7.0
+Elm St,75.0,25.0,Oak Ave,50.0,25.0,7.0
+Oak Ave,50.0,25.0,Cedar Rd,25.0,25.0,8.0
+Cedar Rd,25.0,25.0,Oak Ave,50.0,25.0,8.0
+Pine St,25.0,50.0,Cedar Rd,25.0,25.0,9.0
+Cedar Rd,25.0,25.0,Pine St,25.0,50.0,9.0
+Pine St,25.0,50.0,Maple Ave,0.0,50.0,14.0
+Maple Ave,0.0,50.0,Pine St,25.0,50.0,14.0
+North Ave,50.0,75.0,Uptown Way,75.0,75.0,9.0
+Uptown Way,75.0,75.0,North Ave,50.0,75.0,9.0
+North Ave,50.0,75.0,West End,25.0,75.0,9.0
+West End,25.0,75.0,North Ave,50.0,75.0,9.0
+West End,25.0,75.0,Pine St,25.0,50.0,8.0
+Pine St,25.0,50.0,West End,25.0,75.0,8.0
+Uptown Way,75.0,75.0,Broadway,75.0,50.0,10.0
+Broadway,75.0,50.0,Uptown Way,75.0,75.0,10.0
+Market St,100.0,50.0,Park Ave,100.0,75.0,11.0
+Park Ave,100.0,75.0,Market St,100.0,50.0,11.0
+Uptown Way,75.0,75.0,Park Ave,100.0,75.0,8.0
+Park Ave,100.0,75.0,Uptown Way,75.0,75.0,8.0
+Elm St,75.0,25.0,South Hub,100.0,25.0,10.0
+South Hub,100.0,25.0,Elm St,75.0,25.0,10.0
+Market St,100.0,50.0,South Hub,100.0,25.0,9.0
+South Hub,100.0,25.0,Market St,100.0,50.0,9.0
+Cedar Rd,25.0,25.0,Walnut St,25.0,0.0,10.0
+Walnut St,25.0,0.0,Cedar Rd,25.0,25.0,10.0
+Oak Ave,50.0,25.0,South Plaza,50.0,0.0,11.0
+South Plaza,50.0,0.0,Oak Ave,50.0,25.0,11.0
+Walnut St,25.0,0.0,South Plaza,50.0,0.0,8.0
+South Plaza,50.0,0.0,Walnut St,25.0,0.0,8.0
+Elm St,75.0,25.0,Harbor Rd,75.0,0.0,10.0
+Harbor Rd,75.0,0.0,Elm St,75.0,25.0,10.0
+South Plaza,50.0,0.0,Harbor Rd,75.0,0.0,8.0
+Harbor Rd,75.0,0.0,South Plaza,50.0,0.0,8.0
+Maple Ave,0.0,50.0,Port Rd,0.0,25.0,12.0
+Port Rd,0.0,25.0,Maple Ave,0.0,50.0,12.0
