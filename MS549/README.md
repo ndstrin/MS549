@@ -47,9 +47,10 @@ Install the required third-party libraries using `pip`:
 | `--graph-file` | `str` | `Data/graph_xy.csv` | Relative or absolute path to the CSV file containing the city map network topology. |
 | `--max-time` | `float` | `100.0` | Maximum simulation time cutoff. No new rider requests will be scheduled after this time. |
 | `--seed` | `int` | `42` | Pseudorandom generator seed for deterministic, reproducible simulation runs. |
+| `--snapshot-interval` | `float` | `15.0` | Time units between periodic snapshots. |
 
 Example command to run the simulation with custom parameters:  
-`python simulation.py --num-cars 50 --num-riders 100 --candidate-count 10 --seed 123 --max-time 200.0`
+`python simulation.py --num-cars 50 --num-riders 100 --candidate-count 10 --seed 123 --max-time 200.0 --snapshot-interval 30.0`
 
 ## Event Types
 **RIDER_REQUEST**: A rider requests a trip. Triggers candidate lookup, Dijkstra optimization, vehicle dispatch, and schedules the next dynamic rider request.  
@@ -99,7 +100,32 @@ Exports summary graphic renders a side-by-side view showing the road network map
 
 Output file is saved as `simulation_summary.png` in the working directory.
 
-![Example Map Visualization](Data/simulation_summary_example.png){width=400px height=300px}
+### Example Map Visualization
+
+![Example Map Visualization](Data/simulation_summary_example.png){width=900px height=600px}
+
+## Simulation Snapshots
+Exports periodic snapshots of the simulation state at user-defined intervals. Each snapshot includes a visual representation of the road network, vehicle positions, and rider locations at that specific time point.
+
+Adust the snapshot interval using the `--snapshot-interval` command-line option. For example, to take snapshots every 10 time units
+
+`simulation.py --snapshot-interval 10.0`
+
+Output file is saved as `simulation_time_steps.png` in the working directory.
+
+### Legend:
+
+|Item|Description |
+| :--- | :---: |
+|Blue Circles: |Available cars sitting at map coordinates.|
+|Red Circles: |Busy cars en route to pick up a passenger or driving to a destination.|
+|Green Triangles: |Waiting or in-transit riders at their pickup locations.|
+|Purple Crosses: |Target drop-off destinations on the map graph.|
+
+### Example Snapshot Visualization
+
+![Example Snapshot Visualization](Data/simulation_time_steps_example.png){width=800px height=800px}
+
 
 ## K Value and how to change it
 

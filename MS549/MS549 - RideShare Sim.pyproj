@@ -15,8 +15,7 @@
     <InterpreterId>MSBuild|env|$(MSBuildProjectFullPath)</InterpreterId>
     <SuppressConfigureTestFrameworkPrompt>true</SuppressConfigureTestFrameworkPrompt>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <CommandLineArguments>
-    </CommandLineArguments>
+    <CommandLineArguments>--num-cars 50 --num-riders 100 --candidate-count 5 --seed 123 --max-time 2100.0</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
@@ -41,6 +40,7 @@
     <Content Include="Data\graph_xy.csv" />
     <Content Include="Data\map.csv" />
     <Content Include="Data\simulation_summary_example.png" />
+    <Content Include="Data\simulation_time_steps_example.png" />
     <Content Include="README.md" />
     <Content Include="requirements.txt" />
     <Content Include="Data\SimCityMapGraph.png" />

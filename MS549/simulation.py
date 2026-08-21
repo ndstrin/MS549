@@ -4,6 +4,7 @@ import math
 import os
 import random
 from itertools import count
+from tracemalloc import Snapshot
 from typing import Dict, List, Optional, Any
 
 import matplotlib.pyplot as plt
@@ -21,6 +22,7 @@ graph_file = "Data/graph_xy.csv"
 seed = 42
 max_time = 100.0
 candidate_count = 5
+snapshot_interval = 15.0  # Time units between periodic snapshots
 
 class Simulation:
     # Represents the discrete-event ride-share simulation environment, managing cars, riders, and events.
@@ -31,6 +33,7 @@ class Simulation:
         max_time: Optional[float] = None,
         num_riders: Optional[int] = None,
         map_bounds: Optional[Rectangle] = None,
+        snapshot_interval: float = snapshot_interval
                          
     ):
         # Initializes the simulation with the provided graph, candidate count, maximum time, and rider limit.
@@ -39,6 +42,10 @@ class Simulation:
         self.max_time = max_time
         self.num_riders_limit = num_riders
         self.current_time = 0.0
+        # Initialize snapshot tracking for periodic spatial state recording
+        self.snapshots: List[Dict[str, Any]] = []
+        self.snapshot_interval: float = snapshot_interval
+        self.last_snapshot_time: float = -snapshot_interval # Initialize to ensure the first snapshot is captured at time 0
 
         # Dynamically compute Quadtree boundary from graph nodes if map_bounds is not provided
         if map_bounds is None:
@@ -77,6 +84,21 @@ class Simulation:
             (timestamp, next(self.event_sequence), event_type, data)
         )
 
+    def capture_snapshot(self, event_label: str) -> None:
+        # Records a snapshot of the current simulation state, including the positions and statuses of all cars and active riders.
+        car_data = [(car.id, car.location, car.status) for car in self.all_cars.values()]
+        rider_data = [
+            (r.id, r.start_location, r.destination, r.status) 
+            for r in self.all_riders 
+            if r.status in ("waiting", "in_car")
+        ]
+        self.snapshots.append({
+            "time": self.current_time,
+            "event": event_label,
+            "cars": car_data,
+            "riders": rider_data
+        })
+
     def add_available_car(self, car: Car) -> None:
         # Adds a car to the availability registries and Quadtree index, ensuring no duplicates.
         if car.id in self.available_cars or car.id in self.available_car_points:
@@ -84,7 +106,7 @@ class Simulation:
 
         pt = Point(car.location[0], car.location[1], data=car)
         inserted = self.available_car_quadtree.insert(pt)
-
+        # If insertion fails, raise an error indicating the car could not be added to the Quadtree.
         if not inserted:
             raise ValueError(f"Failed to insert Car {car.id} into Quadtree bounds.")
 
@@ -122,7 +144,7 @@ class Simulation:
 
         rider = Rider(r_id, start_loc, dest_loc)
         self.all_riders.append(rider)
-
+        # Schedule the rider request event with an exponential inter-arrival time distribution (mean = 5 time units).
         if self.riders_generated_count == 1:
             req_time = 0.0
         else:
@@ -145,7 +167,7 @@ class Simulation:
 
         query_pt = Point(rider.start_location[0], rider.start_location[1])
         candidate_points = self.available_car_quadtree.find_k_nearest(query_pt, k=self.candidate_count)
-
+        # If no available cars are found, mark the rider as unmatched and return
         if not candidate_points:
             print(f"  -> No available cars for {rider.id}.")
             rider.status = "unmatched"
@@ -248,6 +270,7 @@ class Simulation:
         print("=== SIMULATION STARTED ===")
         self.generate_rider_request()
 
+
         # Process events in chronological order
         while self.events:
             timestamp, seq, event_type, data = heapq.heappop(self.events)
@@ -262,6 +285,10 @@ class Simulation:
                 self.handle_dropoff_arrival(data)
             else:
                 raise ValueError(f"Unknown event type: {event_type}")
+
+            if self.current_time - self.last_snapshot_time >= self.snapshot_interval:
+                self.capture_snapshot(event_type)
+                self.last_snapshot_time = self.current_time
 
         print("=== SIMULATION COMPLETED ===")
 
@@ -326,7 +353,73 @@ def render_analytical_summary(sim: Simulation, output_filename: str = "simulatio
     plt.savefig(output_filename, dpi=300)
     print(f"Saved summary chart to: {os.path.abspath(output_filename)}")
 
+def render_time_step_snapshots(
+    snapshots: List[Dict[str, Any]], 
+    graph: Any, 
+    output_filename: str = "simulation_time_steps.png"
+) -> None:
+     # Generates a grid of time-step snapshots visualizing the positions of cars and riders at various simulation events
+    if not snapshots:
+        print("No snapshots recorded to render.")
+        return
 
+    num_snapshots = len(snapshots)
+    cols = min(3, num_snapshots)
+    rows = math.ceil(num_snapshots / cols)
+
+    fig, axes = plt.subplots(rows, cols, figsize=(5 * cols, 4.5 * rows))
+    
+    # Standardize axes array for uniform iteration
+    if rows == 1 and cols == 1:
+        axes_flat = [axes]
+    elif rows == 1 or cols == 1:
+        axes_flat = list(axes)
+    else:
+        axes_flat = [ax for row in axes for ax in row]
+
+    # Pre-extract road network edge geometry
+    edges = []
+    for u, neighbors in graph.adjacency_list.items():
+        ux, uy = graph.node_coordinates[u]
+        for v, _ in neighbors:
+            vx, vy = graph.node_coordinates[v]
+            edges.append(((ux, vx), (uy, vy)))
+    # Iterate through each snapshot and render the corresponding spatial positions of cars and riders
+    for i, snap in enumerate(snapshots):
+        ax = axes_flat[i]
+        t = snap["time"]
+        event_name = snap["event"]
+
+        # 1. Draw city road network background
+        for x_coords, y_coords in edges:
+            ax.plot(x_coords, y_coords, color="#e0e0e0", linewidth=0.8, zorder=1)
+
+        # 2. Draw Available Cars (Blue) & Busy/En-Route Cars (Red)
+        for c_id, (cx, cy), status in snap["cars"]:
+            color = "#2b5c8f" if status == "available" else "#d9534f"
+            ax.scatter(cx, cy, color=color, s=40, zorder=3)
+            ax.annotate(c_id, (cx, cy), textcoords="offset points", xytext=(0, 4), ha="center", fontsize=7)
+
+        # 3. Draw Waiting/Active Riders (Green triangles) & Destinations (Purple crosses)
+        for r_id, (rx, ry), (dx, dy), status in snap["riders"]:
+            if status in ("waiting", "in_car"):
+                ax.scatter(rx, ry, color="#2e7d32", marker="^", s=45, zorder=4)
+                ax.scatter(dx, dy, color="#7b1fa2", marker="x", s=40, zorder=2)
+
+        # Set axis limits based on graph node coordinates with padding
+        ax.set_title(f"t = {t:.1f} ({event_name})", fontsize=10, fontweight="bold")
+        ax.set_xlabel("X")
+        ax.set_ylabel("Y")
+        ax.grid(True, linestyle=":", alpha=0.4)
+
+    # Hide unused subplots in the grid
+    for j in range(num_snapshots, len(axes_flat)):
+        axes_flat[j].axis("off")
+    # Set a super title for the entire figure and adjust layout
+    plt.suptitle("Ride-Share Fleet & Rider Positions Across Simulation Time Steps", fontsize=14, y=1.02)
+    plt.tight_layout()
+    plt.savefig(output_filename, dpi=300, bbox_inches="tight")
+    print(f"Saved time-step snapshots to: {output_filename}")
 
 def main() -> None:
 
@@ -338,6 +431,7 @@ def main() -> None:
     parser.add_argument("--graph-file", type=str, default=graph_file, help="Path to CSV road map dataset")
     parser.add_argument("--max-time", type=float, default=max_time, help="Maximum simulation time cutoff")
     parser.add_argument("--seed", type=int, default=seed, help="Seed for pseudorandom reproducibility")
+    parser.add_argument("--snapshot-interval", type=float, default=snapshot_interval, help="Time units between periodic snapshots")
 
     # Parse the command-line arguments
     args = parser.parse_args()
@@ -352,6 +446,7 @@ def main() -> None:
         candidate_count=args.candidate_count,
         max_time=args.max_time,
         num_riders=args.num_riders,
+        snapshot_interval=args.snapshot_interval    
     )
     # Create and register cars with random initial locations from the graph's node coordinates
     node_coords = list(graph.node_coordinates.values())
@@ -364,6 +459,8 @@ def main() -> None:
     # Run the simulation and render the analytical summary upon completion
     sim.run()
     render_analytical_summary(sim)
+    # Render time-step snapshots to visualize the evolution of the simulation over time
+    render_time_step_snapshots(sim.snapshots, graph, output_filename="simulation_time_steps.png")
 
 
 if __name__ == "__main__":
