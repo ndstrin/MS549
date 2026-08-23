@@ -52,6 +52,9 @@ Install the required third-party libraries using `pip`:
 Example command to run the simulation with custom parameters:  
 `python simulation.py --num-cars 50 --num-riders 100 --candidate-count 10 --seed 123 --max-time 200.0 --snapshot-interval 30.0`
 
+## Simulation Log Output
+Outputs all the console logs to a file named `simulation.log` in the working directory.  
+
 ## Event Types
 **RIDER_REQUEST**: A rider requests a trip. Triggers candidate lookup, Dijkstra optimization, vehicle dispatch, and schedules the next dynamic rider request.  
 **PICKUP_ARRIVAL**: A vehicle arrives at a passenger's starting location. Passenger enters the car, and the engine calculates the trip route to schedule drop-off.  
@@ -93,6 +96,7 @@ Example command to run the simulation with custom parameters:
 * **avg_wait_time**: The average time riders spent waiting for pickup after their request was generated.
 * **driver_utilization**: The percentage of time drivers spent actively transporting passengers versus being idle or waiting for assignments.
 * **trip_per_Vehicle**: The average number of trips completed per vehicle during the simulation.
+* **trip_duration**: The average time taken for trips from pickup to drop-off, including any delays or detours.
 
 ## Analytical Visualizations
 

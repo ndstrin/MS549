@@ -1,49 +1,50 @@
 import heapq
 
 
-def find_shortest_path(graph, start_node, end_node):
+def find_shortest_path(graph: Any, start_node: str, end_node: str) -> Tuple[Optional[List[str]], float]:
+    # Implements Dijkstra's algorithm to find the shortest path from start_node to end_node in the given graph.
+    if start_node not in graph.adjacency_list or end_node not in graph.adjacency_list:
+        return None, float("inf")
 
-    # Handle the case where the start or end node is not in the graph
-    if start_node not in graph.adjacency_list:
-        return (None, float("inf"))
+    # Handle trivial case where start and end are identical
+    if start_node == end_node:
+        return [start_node], 0.0
+    # Initialize tracking structures across all known graph nodes
+    all_nodes = set(graph.adjacency_list.keys()).union(getattr(graph, "node_coordinates", {}).keys())
+    distances = {node: float("inf") for node in all_nodes}
+    predecessors = {node: None for node in all_nodes}
+    distances[start_node] = 0.0
+    priority_queue: List[Tuple[float, str]] = [(0.0, start_node)]
+    while priority_queue:
+        current_dist, current_node = heapq.heappop(priority_queue)
 
-    # Initialize the priority queue with the starting node and a distance of 0
-    priorityQueue = [(0, start_node)]
-    # Initialize distances dictionary with infinite distance for all nodes
-    distances = {node: float("inf") for node in graph.adjacency_list}
-    distances[start_node] = 0
-
-    # Initialize predecessors dictionary to reconstruct the shortest path
-    predecessors = {node: None for node in graph.adjacency_list}
-
-    while priorityQueue:
-        current_dist, current_node = heapq.heappop(priorityQueue)
-        # If we reached the destination node stop the search
+        # Early exit if target destination node is reached
         if current_node == end_node:
             break
-        # Skip if we already found a shorter path to this node
+
+        # Skip processing if a shorter path to current_node was already processed
         if current_dist > distances[current_node]:
             continue
-        # Check all neighbors of the current node
+
+        # Explore adjacent neighbors
         for neighbor, weight in graph.adjacency_list.get(current_node, []):
-            distance = current_dist + weight
+            new_distance = current_dist + weight
 
-            # If a shorter path to neighbor is found
-            if distance < distances.get(neighbor, float("inf")):
-                distances[neighbor] = distance
+            if new_distance < distances.get(neighbor, float("inf")):
+                distances[neighbor] = new_distance
                 predecessors[neighbor] = current_node
-                heapq.heappush(priorityQueue, (distance, neighbor))
+                heapq.heappush(priority_queue, (new_distance, neighbor))
 
-    # Reconstruct path if destination was reached
+    # Return None if target end node was unreachable
     if distances.get(end_node, float("inf")) == float("inf"):
-        return (None, float("inf"))
+        return None, float("inf")
 
+    # Reconstruct shortest path by backtracking from end_node
     path = []
-    curr = end_node
-    # Reconstruct the path from end_node to start_node using predecessors
+    curr: Optional[str] = end_node
     while curr is not None:
         path.append(curr)
-        curr = predecessors[curr]
-    # Reverse the path to get it from start to end
-    path.reverse()  
-    return (path, distances[end_node])
+        curr = predecessors.get(curr)
+
+    path.reverse()
+    return path, distances[end_node]

@@ -3,6 +3,7 @@ import heapq
 import math
 import os
 import random
+import sys  
 from itertools import count
 from tracemalloc import Snapshot
 from typing import Dict, List, Optional, Any
@@ -23,6 +24,22 @@ seed = 42
 max_time = 100.0
 candidate_count = 5
 snapshot_interval = 15.0  # Time units between periodic snapshots
+
+
+class LogConsole:
+    # Redirects console output to both a log file and the standard output for real-time monitoring.
+    def __init__(self, filename):
+        self.file = open(filename, "w", encoding="utf-8")
+        self.stdout = sys.stdout
+    # Overrides the write method to send output to both the log file and standard output.
+    def write(self, data):
+        self.file.write(data)
+        self.stdout.write(data) 
+    # Overrides the flush method to ensure both the log file and standard output are flushed.
+    def flush(self):
+        self.file.flush()
+        self.stdout.flush()
+
 
 class Simulation:
     # Represents the discrete-event ride-share simulation environment, managing cars, riders, and events.
@@ -129,13 +146,18 @@ class Simulation:
         del self.available_cars[car.id]
 
     def generate_rider_request(self) -> None:
-        # Generates dynamic random rider requests up to configured limits.
         if self.num_riders_limit is not None and self.riders_generated_count >= self.num_riders_limit:
             return
 
+        # Calculate proposed arrival time
+        if self.riders_generated_count == 0:
+            req_time = 0.0
+        else:
+            req_time = self.current_time + random.expovariate(1.0 / 5.0)
+
+        # Increment the rider count and generate a unique rider ID
         self.riders_generated_count += 1
         r_id = f"R{self.riders_generated_count}"
-        # Randomly select start and destination locations from graph nodes, ensuring they are distinct.
         nodes = list(self.graph.node_coordinates.values())
         start_loc = random.choice(nodes)
         dest_loc = random.choice(nodes)
@@ -143,44 +165,47 @@ class Simulation:
             dest_loc = random.choice(nodes)
 
         rider = Rider(r_id, start_loc, dest_loc)
+        rider.request_time = req_time
         self.all_riders.append(rider)
-        # Schedule the rider request event with an exponential inter-arrival time distribution (mean = 5 time units).
-        if self.riders_generated_count == 1:
-            req_time = 0.0
-        else:
-            req_time = self.current_time + random.expovariate(1.0 / 5.0)
 
+        # Check if the request time exceeds the maximum allowed time for rider requests
         if self.max_time is not None and req_time > self.max_time:
+            rider.status = "unmatched"
+            if rider not in self.unmatched_riders:
+                self.unmatched_riders.append(rider)
+            print(f"[{req_time:.2f}] RIDER_REQUEST_EXCEEDED_MAX_TIME: {rider.id} rejected (exceeds max_time={self.max_time})")
+            # Generate the next rider request
+            self.generate_rider_request()
             return
 
+        # Schedule event in heap only if within max_time window
         self.schedule_event(req_time, "RIDER_REQUEST", rider)
 
     def handle_rider_request(self, rider: Rider) -> None:
-        # Handles a rider request event by finding the nearest available car and scheduling pickup.
+        # Handles a rider request event by finding the nearest available car, assigning it, and scheduling the pickup arrival.
         if rider.request_time is None:
             rider.request_time = self.current_time
 
         print(f"[{self.current_time:.2f}] RIDER_REQUEST: {rider.id} at {rider.start_location} -> {rider.destination}")
 
-        # Schedule next request before processing
         self.generate_rider_request()
 
         query_pt = Point(rider.start_location[0], rider.start_location[1])
         candidate_points = self.available_car_quadtree.find_k_nearest(query_pt, k=self.candidate_count)
-        # If no available cars are found, mark the rider as unmatched and return
+
         if not candidate_points:
             print(f"  -> No available cars for {rider.id}.")
             rider.status = "unmatched"
-            self.unmatched_riders.append(rider)
+            if rider not in self.unmatched_riders:
+                self.unmatched_riders.append(rider)
             return
 
-        # Dijkstra calculation over Quadtree candidates
+        # Find the best car among candidates based on shortest travel time using Dijkstra's algorithm
         rider_vertex = self.graph.find_nearest_vertex(rider.start_location)
         best_car = None
         best_route = None
         min_travel_time = float("inf")
-
-        # Evaluate each candidate car for shortest travel time to rider
+        # Iterate through candidate cars to find the one with the shortest travel time to the rider's location
         for pt in candidate_points:
             car: Car = pt.data
             car_vertex = self.graph.find_nearest_vertex(car.location)
@@ -190,15 +215,15 @@ class Simulation:
                 min_travel_time = travel_time
                 best_car = car
                 best_route = route
-
-        # If no reachable car was found, mark rider as unmatched
+        # If no reachable car is found, mark the rider as unmatched and return
         if best_car is None:
             print(f"  -> All candidates unreachable for {rider.id}.")
             rider.status = "unmatched"
-            self.unmatched_riders.append(rider)
+            if rider not in self.unmatched_riders:
+                self.unmatched_riders.append(rider)
             return
 
-        # Dispatch selected car
+        # Single dispatch execution
         self.remove_available_car(best_car)
         best_car.status = "en_route_to_pickup"
         best_car.assigned_rider = rider
@@ -207,7 +232,6 @@ class Simulation:
         best_car.busy_start_time = self.current_time
         rider.status = "waiting"
 
-        # Schedule pickup arrival event based on calculated travel time
         pickup_arrival_time = self.current_time + min_travel_time
         self.schedule_event(pickup_arrival_time, "PICKUP_ARRIVAL", best_car)
         print(f"  -> Assigned Car {best_car.id} (ETA: {min_travel_time:.2f} units)")
@@ -224,22 +248,24 @@ class Simulation:
         rider.status = "in_car"
         rider.pickup_time = self.current_time
 
-        p_vertex = self.graph.find_nearest_vertex(rider.start_location)
+        # Compute the route and travel time from pickup to dropoff using Dijkstra's algorithm
+        s_vertex = self.graph.find_nearest_vertex(rider.start_location)
         d_vertex = self.graph.find_nearest_vertex(rider.destination)
-        trip_route, trip_time = self.graph.dijkstra(p_vertex, d_vertex)
-
-        # If the trip route is unreachable, mark the rider as unsuccessful and return the car to availability.
+        trip_route, trip_time = self.graph.dijkstra(s_vertex, d_vertex)
+        # If the trip route is None or the trip time is infinite, mark the rider as unsuccessful and return the car to availability
         if trip_route is None or math.isinf(trip_time):
             print(f"  -> Destination unreachable! Recovering Car {car.id}.")
             rider.status = "unsuccessful"
-            self.unmatched_riders.append(rider)
+            if rider not in self.unmatched_riders:
+                self.unmatched_riders.append(rider)
 
             if car.busy_start_time is not None:
                 car.total_busy_time += (self.current_time - car.busy_start_time)
+                car.busy_start_time = None
             car.assigned_rider = None
             self.add_available_car(car)
             return
-        # Schedule dropoff arrival event based on calculated trip time
+        # Update car's route and schedule dropoff arrival event
         car.route = trip_route
         car.route_time = trip_time
         dropoff_time = self.current_time + trip_time
@@ -290,7 +316,20 @@ class Simulation:
                 self.capture_snapshot(event_type)
                 self.last_snapshot_time = self.current_time
 
-        print("=== SIMULATION COMPLETED ===")
+        # Finalize busy time for any cars still in transit at the end of the simulation
+        for car in self.all_cars.values():
+            if car.status != "available" and car.busy_start_time is not None:
+                car.total_busy_time += (self.current_time - car.busy_start_time)
+                car.busy_start_time = None
+
+        # Finalize unmatched riders after all events are processed
+        for rider in self.all_riders:
+            if rider.status in ("unassigned", "waiting", "unmatched", "unsuccessful") and rider not in self.unmatched_riders:
+                rider.status = "unmatched"
+                self.unmatched_riders.append(rider)
+
+
+        print("\n============== SIMULATION COMPLETED ============== ")
 
 
 def render_analytical_summary(sim: Simulation, output_filename: str = "simulation_summary.png") -> None:
@@ -323,12 +362,15 @@ def render_analytical_summary(sim: Simulation, output_filename: str = "simulatio
     ax_chart.set_xlabel("Car ID")
     ax_chart.set_ylabel("Trips Completed")
     # Add a grid for better readability
-    total_riders = sim.riders_generated_count
+    total_riders = len(sim.all_riders)
     completed_count = len(sim.completed_riders)
     unmatched_count = len(sim.unmatched_riders)
     # Calculate average wait time for riders who were successfully picked up
-    wait_times = [(r.pickup_time - r.request_time) for r in sim.completed_riders if r.pickup_time and r.request_time]
+    wait_times = [(r.pickup_time - r.request_time) for r in sim.completed_riders if r.pickup_time is not None and r.request_time is not None]
     avg_wait = (sum(wait_times) / len(wait_times)) if wait_times else 0.0
+    # Calculate average trip duration for completed trips
+    trip_durations = [(r.dropoff_time - r.pickup_time) for r in sim.completed_riders if r.dropoff_time is not None and r.pickup_time is not None]
+    avg_trip_duration = (sum(trip_durations) / len(trip_durations)) if trip_durations else 0.0
     # Calculate driver utilization as a percentage of time spent busy versus total simulation time
     span = sim.current_time if sim.current_time > 0 else 1.0
     total_busy = sum(car.total_busy_time for car in sim.all_cars.values())
@@ -341,8 +383,10 @@ def render_analytical_summary(sim: Simulation, output_filename: str = "simulatio
         f"Completed Trips: {completed_count}\n"
         f"Unmatched/Failed: {unmatched_count}\n"
         f"Avg Wait Time: {avg_wait:.2f} units\n"
+        f"Avg Trip Duration: {avg_trip_duration:.2f} units\n"
         f"Driver Utilization: {driver_utilization:.1f}%"
     )
+    print(metrics_text)
     # Add the metrics summary text to the figure with a styled bounding box 
     fig.text(
         0.51, 0.55, metrics_text, fontsize=11, family="monospace",
@@ -351,7 +395,8 @@ def render_analytical_summary(sim: Simulation, output_filename: str = "simulatio
 
     plt.tight_layout()
     plt.savefig(output_filename, dpi=300)
-    print(f"Saved summary chart to: {os.path.abspath(output_filename)}")
+    print("\n============== File Outputs ==============")
+    print(f"Saved summary chart to: {output_filename}")
 
 def render_time_step_snapshots(
     snapshots: List[Dict[str, Any]], 
@@ -421,6 +466,21 @@ def render_time_step_snapshots(
     plt.savefig(output_filename, dpi=300, bbox_inches="tight")
     print(f"Saved time-step snapshots to: {output_filename}")
 
+def print_simulation_settings(args: argparse.Namespace) -> None:
+    """Prints a formatted summary of runtime configuration settings."""
+    print("=" * 50)
+    print("          SIMULATION CONFIGURATION SETTINGS       ")
+    print("=" * 50)
+    print(f"  Total Vehicles      (--num-cars)          : {args.num_cars}")
+    print(f"  Total Riders        (--num-riders)        : {args.num_riders}")
+    print(f"  Candidate Count     (--candidate-count)   : {args.candidate_count}")
+    print(f"  Max Simulation Time (--max-time)          : {args.max_time} time units")
+    print(f"  Snapshot Interval   (--snapshot-int)      : {args.snapshot_interval} time units")
+    print(f"  Graph Dataset       (--graph-file)        : {args.graph_file}")
+    print(f"  Seed                (--seed)              : {args.seed}")
+    print("=" * 50 + "\n")
+
+
 def main() -> None:
 
     # Set up command-line argument parser
@@ -435,6 +495,8 @@ def main() -> None:
 
     # Parse the command-line arguments
     args = parser.parse_args()
+    # Redirect console output to a log file while still displaying it in the terminal
+    sys.stdout = LogConsole("simulation.log")
 
     # Set the random seed for reproducibility and load the graph data from the specified file
     random.seed(args.seed)
@@ -458,9 +520,11 @@ def main() -> None:
         sim.add_available_car(car)
     # Run the simulation and render the analytical summary upon completion
     sim.run()
+    print_simulation_settings(args)
     render_analytical_summary(sim)
     # Render time-step snapshots to visualize the evolution of the simulation over time
     render_time_step_snapshots(sim.snapshots, graph, output_filename="simulation_time_steps.png")
+    print("Simulation completed. Check 'simulation.log' for detailed simulation logs.")
 
 
 if __name__ == "__main__":

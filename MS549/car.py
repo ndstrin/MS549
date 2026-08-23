@@ -24,12 +24,20 @@ class Car:
         return f"Car({self.id}, loc={self.location}, status={self.status})"
 
     # Function to calculate the shortest route to a destination using Dijkstra's algorithm
-    def calculate_route(self, destination, graph):
-        path, travelTime = find_shortest_path(graph, self.location, destination)
-        # Update the car's route and route time based on the calculated path
-        self.route = path
-        self.route_time = travelTime
+    def calculate_route(self, destination: Tuple[float, float], graph: Any) -> Tuple[List[str], float]:
+
+        # Map 2D spatial coordinates (x, y) to graph node string IDs
+        start_vertex = graph.find_nearest_vertex(self.location)
+        dest_vertex = graph.find_nearest_vertex(destination)
+
+        # Execute Dijkstra's pathfinding using graph node IDs
+        path, travel_time = graph.dijkstra(start_vertex, dest_vertex)
+
+        # Update instance properties
+        self.route = path if path is not None else []
+        self.route_time = travel_time if travel_time is not None else float("inf")
         self.destination = destination
+
         return self.route, self.route_time
 
     # Function to calculate the travel time to a given end location based on Manhattan distance
